@@ -14,7 +14,9 @@
     "next-auth": "^4.24.5",
     "prisma": "^6.5.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "statsig-js": "^5.1.0",
+    "statsig-node": "^6.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
