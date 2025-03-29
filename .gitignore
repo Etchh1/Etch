@@ -39,6 +39,8 @@ next-env.d.ts
 .expo/
 dist/
 web-build/
+Etch/
+mobile/
 
 # Native
 *.orig.*
@@ -59,3 +61,7 @@ web-build/
 # IDE
 .idea/
 .vscode/
+
+# Build outputs
+*.log
+*.lock
