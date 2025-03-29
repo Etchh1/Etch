@@ -1,18 +1,13 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
-import { initializeStatsig } from '@/lib/statsig'
+import { StatsigWrapper } from '@/lib/statsig'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Etch',
   description: 'Etch Application',
-}
-
-// Initialize Statsig
-if (typeof window !== 'undefined') {
-  initializeStatsig()
 }
 
 export default function RootLayout({
@@ -23,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        <StatsigWrapper>
+          {children}
+        </StatsigWrapper>
         <Analytics />
       </body>
     </html>
