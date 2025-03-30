@@ -17,14 +17,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.etch.mobile",
-      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": [
-          "remote-notification",
-          "remote-notification",
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -32,8 +27,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.etch.mobile",
-      "versionCode": 1
+      "package": "com.etch.mobile"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -55,10 +49,7 @@
       }
     },
     "owner": "etchh1",
-    "sdkVersion": "52.0.0",
-    "runtimeVersion": "1.0.0",
-    "updates": {
-      "url": "https://u.expo.dev/8f68e337-4c1f-4f58-8ee0-5b3b75ff1151"
-    }
+    "sdkVersion": "50.0.0",
+    "runtimeVersion": "1.0.0"
   }
 }
