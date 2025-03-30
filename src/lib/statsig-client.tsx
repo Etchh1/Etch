@@ -1,9 +1,10 @@
 'use client'
 
 import React from 'react';
+import { StatsigProvider } from '@statsig/react-bindings';
 import { StatsigClient } from '@statsig/js-client';
 
-const statsig = new StatsigClient(
+const client = new StatsigClient(
   process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!,
   { userID: 'anonymous' }
 );
@@ -11,7 +12,7 @@ const statsig = new StatsigClient(
 export const initializeStatsig = async () => {
   if (typeof window !== 'undefined') {
     try {
-      await statsig.initializeAsync();
+      await client.initializeAsync();
       console.log('Statsig initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Statsig:', error);
@@ -24,7 +25,11 @@ export const StatsigWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
     initializeStatsig();
   }, []);
 
-  return <>{children}</>;
+  return (
+    <StatsigProvider client={client}>
+      {children}
+    </StatsigProvider>
+  );
 };
 
 export const useFeatureFlag = (flagName: string) => {
@@ -32,7 +37,7 @@ export const useFeatureFlag = (flagName: string) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setValue(statsig.checkGate(flagName));
+      setValue(client.checkGate(flagName));
     }
   }, [flagName]);
 
@@ -44,7 +49,7 @@ export const useConfigValue = (configName: string) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setValue(statsig.getDynamicConfig(configName).value);
+      setValue(client.getDynamicConfig(configName).value);
     }
   }, [configName]);
 
