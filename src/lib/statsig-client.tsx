@@ -4,19 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { StatsigProvider, useGateValue, useDynamicConfig } from '@statsig/react-bindings';
 import { StatsigClient } from '@statsig/js-client';
 
-let client: StatsigClient | null = null;
-
-export const initializeStatsig = async (userID: string) => {
-  if (!client) {
-    client = new StatsigClient(
-      process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY || '',
-      { userID }
-    );
-    await client.initializeAsync();
-  }
-  return client;
-};
-
 export const useFeatureFlag = (flagName: string) => {
   return useGateValue(flagName);
 };
@@ -31,16 +18,23 @@ export const StatsigWrapper = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const initClient = async () => {
-      const userID = 'test-user'; // Replace with actual user ID logic
-      const client = await initializeStatsig(userID);
-      setStatsigClient(client);
+      try {
+        const client = new StatsigClient(
+          process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY || '',
+          { userID: 'test-user' } // Replace with actual user ID logic
+        );
+        await client.initializeAsync();
+        setStatsigClient(client);
+      } catch (error) {
+        console.error('Failed to initialize Statsig:', error);
+      }
     };
 
     initClient();
   }, []);
 
   if (!statsigClient) {
-    return null;
+    return null; // Or a loading component
   }
 
   return (
