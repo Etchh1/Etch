@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-type ErrorType = 'database' | 'connection' | 'validation' | 'unknown';
-
 interface ErrorResponse {
   status: string;
   error: string;
   details: {
     code?: string;
     timestamp: number;
-    type: ErrorType;
+    type: 'database' | 'connection' | 'validation' | 'unknown';
   };
 }
 
 const createErrorResponse = (
   message: string,
-  type: ErrorType,
+  type: ErrorResponse['details']['type'],
   code?: string
 ): ErrorResponse => ({
   status: '❌ Error',
@@ -36,7 +34,7 @@ const createSuccessResponse = (message: string) => ({
 export async function GET() {
   try {
     // Test the connection with a timeout
-    const result = await Promise.race([
+    await Promise.race([
       prisma.$queryRaw`SELECT 1`,
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Database connection timeout')), 5000)
