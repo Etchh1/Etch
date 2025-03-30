@@ -20,13 +20,26 @@ interface StatsigWrapperProps {
   userID?: string;
   maxRetries?: number;
   retryDelay?: number;
+  maxJitter?: number;
 }
 
 interface StatsigState {
   status: 'idle' | 'loading' | 'error' | 'success';
   error: Error | null;
   retryCount: number;
+  lastErrorType?: 'network' | 'config' | 'initialization' | 'unknown';
 }
+
+const isNetworkError = (error: Error): boolean => {
+  return error.message.includes('network') || 
+         error.message.includes('timeout') ||
+         error.message.includes('fetch');
+};
+
+const isConfigError = (error: Error): boolean => {
+  return error.message.includes('client key') || 
+         error.message.includes('configuration');
+};
 
 export const StatsigWrapper = ({
   children,
@@ -35,6 +48,7 @@ export const StatsigWrapper = ({
   userID = 'anonymous',
   maxRetries = 3,
   retryDelay = 1000,
+  maxJitter = 1000,
 }: StatsigWrapperProps) => {
   const [statsigClient, setStatsigClient] = useState<StatsigClient | null>(null);
   const [state, setState] = useState<StatsigState>({
@@ -72,25 +86,43 @@ export const StatsigWrapper = ({
         console.error('Failed to initialize Statsig:', err);
         
         if (mounted) {
+          const error = err instanceof Error ? err : new Error('Failed to initialize Statsig');
           const currentRetryCount = state.retryCount;
-          if (currentRetryCount < maxRetries) {
-            // Exponential backoff for retries with jitter
+          
+          // Determine error type
+          let errorType: StatsigState['lastErrorType'] = 'unknown';
+          if (isNetworkError(error)) {
+            errorType = 'network';
+          } else if (isConfigError(error)) {
+            errorType = 'config';
+          } else if (error.message.includes('initialization')) {
+            errorType = 'initialization';
+          }
+
+          // Only retry for network and initialization errors
+          const shouldRetry = (errorType === 'network' || errorType === 'initialization') && 
+                            currentRetryCount < maxRetries;
+
+          if (shouldRetry) {
+            // Exponential backoff with jitter
             const baseDelay = retryDelay * Math.pow(2, currentRetryCount);
-            const jitter = Math.random() * 1000; // Add up to 1 second of random jitter
-            const delay = baseDelay + jitter;
+            const jitter = Math.random() * maxJitter;
+            const delay = Math.min(baseDelay + jitter, 30000); // Cap at 30 seconds
             
             retryTimeout = setTimeout(() => {
               setState(prev => ({
                 ...prev,
                 retryCount: prev.retryCount + 1,
                 status: 'loading',
+                lastErrorType: errorType,
               }));
             }, delay);
           } else {
             setState({
               status: 'error',
-              error: err instanceof Error ? err : new Error('Failed to initialize Statsig after multiple attempts'),
+              error,
               retryCount: currentRetryCount,
+              lastErrorType: errorType,
             });
           }
         }
@@ -108,7 +140,7 @@ export const StatsigWrapper = ({
         clearTimeout(retryTimeout);
       }
     };
-  }, [userID, state.retryCount, maxRetries, retryDelay]);
+  }, [userID, state.retryCount, maxRetries, retryDelay, maxJitter]);
 
   if (state.status === 'error') {
     return errorComponent;
