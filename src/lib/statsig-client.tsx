@@ -18,6 +18,8 @@ interface StatsigWrapperProps {
   loadingComponent?: React.ReactNode;
   errorComponent?: React.ReactNode;
   userID?: string;
+  maxRetries?: number;
+  retryDelay?: number;
 }
 
 export const StatsigWrapper = ({
@@ -25,13 +27,17 @@ export const StatsigWrapper = ({
   loadingComponent = <div>Loading...</div>,
   errorComponent = <div>Failed to initialize feature flags</div>,
   userID = 'anonymous',
+  maxRetries = 3,
+  retryDelay = 1000,
 }: StatsigWrapperProps) => {
   const [statsigClient, setStatsigClient] = useState<StatsigClient | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
     let client: StatsigClient | null = null;
+    let retryTimeout: NodeJS.Timeout;
 
     const initClient = async () => {
       try {
@@ -46,11 +52,21 @@ export const StatsigWrapper = ({
         if (mounted) {
           setStatsigClient(client);
           setError(null);
+          setRetryCount(0);
         }
       } catch (err) {
         console.error('Failed to initialize Statsig:', err);
+        
         if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to initialize Statsig'));
+          if (retryCount < maxRetries) {
+            // Exponential backoff for retries
+            const delay = retryDelay * Math.pow(2, retryCount);
+            retryTimeout = setTimeout(() => {
+              setRetryCount(prev => prev + 1);
+            }, delay);
+          } else {
+            setError(err instanceof Error ? err : new Error('Failed to initialize Statsig after multiple attempts'));
+          }
         }
       }
     };
@@ -62,8 +78,11 @@ export const StatsigWrapper = ({
       if (client) {
         client.shutdown();
       }
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
     };
-  }, [userID]);
+  }, [userID, retryCount, maxRetries, retryDelay]);
 
   if (error) {
     return errorComponent;
