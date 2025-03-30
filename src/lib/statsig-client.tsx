@@ -1,57 +1,61 @@
 'use client'
 
-import React from 'react';
-import { StatsigProvider } from '@statsig/react-bindings';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { StatsigProvider, useStatsigClient, useGateValue, useDynamicConfig } from '@statsig/react-bindings';
 import { StatsigClient } from '@statsig/js-client';
 
-const client = new StatsigClient(
-  process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!,
-  { userID: 'anonymous' }
-);
+const StatsigContext = createContext<StatsigClient | null>(null);
 
-export const initializeStatsig = async () => {
-  if (typeof window !== 'undefined') {
-    try {
-      await client.initializeAsync();
-      console.log('Statsig initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize Statsig:', error);
-    }
+export const useStatsig = () => {
+  const client = useContext(StatsigContext);
+  if (!client) {
+    throw new Error('useStatsig must be used within a StatsigProvider');
   }
-};
-
-export const StatsigWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  React.useEffect(() => {
-    initializeStatsig();
-  }, []);
-
-  return (
-    <StatsigProvider client={client}>
-      {children}
-    </StatsigProvider>
-  );
+  return client;
 };
 
 export const useFeatureFlag = (flagName: string) => {
-  const [value, setValue] = React.useState(false);
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setValue(client.getFeatureGate(flagName).value);
-    }
-  }, [flagName]);
-
-  return value;
+  return useGateValue(flagName);
 };
 
 export const useConfigValue = (configName: string) => {
-  const [value, setValue] = React.useState<any>(null);
+  const config = useDynamicConfig(configName);
+  return config.value;
+};
 
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setValue(client.getDynamicConfig(configName).value);
-    }
-  }, [configName]);
+let client: StatsigClient | null = null;
 
-  return { value };
+export const initializeStatsig = async (userID: string) => {
+  if (!client) {
+    client = new StatsigClient(
+      process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY || '',
+      { userID }
+    );
+    await client.initializeAsync();
+  }
+  return client;
+};
+
+export const StatsigWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [statsigClient, setStatsigClient] = useState<StatsigClient | null>(null);
+
+  useEffect(() => {
+    const initClient = async () => {
+      const userID = 'test-user'; // Replace with actual user ID logic
+      const client = await initializeStatsig(userID);
+      setStatsigClient(client);
+    };
+
+    initClient();
+  }, []);
+
+  if (!statsigClient) {
+    return null;
+  }
+
+  return (
+    <StatsigProvider client={statsigClient}>
+      {children}
+    </StatsigProvider>
+  );
 }; 
