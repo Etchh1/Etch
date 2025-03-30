@@ -1,7 +1,7 @@
+'use client'
+
 import React from 'react';
 import { StatsigProvider } from '@statsig/react-bindings';
-import { SessionReplay } from '@statsig/session-replay';
-import { WebAnalytics } from '@statsig/web-analytics';
 
 export const initializeStatsig = async () => {
   try {
@@ -15,8 +15,6 @@ export const initializeStatsig = async () => {
 export const StatsigWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <StatsigProvider>
-      <SessionReplay />
-      <WebAnalytics />
       {children}
     </StatsigProvider>
   );
