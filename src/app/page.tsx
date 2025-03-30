@@ -16,20 +16,23 @@ export default function Home() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    supabase.from('_tables').select('*').limit(1)
-      .then(() => {
+    const checkConnection = async () => {
+      try {
+        await supabase.from('_tables').select('*').limit(1)
         setStatus('✅ Successfully connected to Supabase!')
-      })
-      .catch((error) => {
-        setStatus(`❌ Connection error: ${error.message}`)
-      })
+      } catch (error) {
+        setStatus(`❌ Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+
+    checkConnection()
   }, [])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-8">
-          {welcomeMessage ? welcomeText?.value || 'Welcome to Etch' : 'Welcome to Etch'}
+          {welcomeMessage ? String(welcomeText || 'Welcome to Etch') : 'Welcome to Etch'}
         </h1>
         <div className="text-xl space-y-4">
           <p>Supabase Status: {status}</p>
