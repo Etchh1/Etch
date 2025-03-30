@@ -17,38 +17,53 @@ interface StatsigWrapperProps {
   children: React.ReactNode;
   loadingComponent?: React.ReactNode;
   errorComponent?: React.ReactNode;
+  userID?: string;
 }
 
 export const StatsigWrapper = ({
   children,
   loadingComponent = <div>Loading...</div>,
   errorComponent = <div>Failed to initialize feature flags</div>,
+  userID = 'anonymous',
 }: StatsigWrapperProps) => {
   const [statsigClient, setStatsigClient] = useState<StatsigClient | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+    let client: StatsigClient | null = null;
+
     const initClient = async () => {
       try {
-        if (!process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY) {
+        const clientKey = process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY;
+        if (!clientKey) {
           throw new Error('Statsig client key is not configured');
         }
 
-        const client = new StatsigClient(
-          process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY,
-          { userID: 'test-user' } // Replace with actual user ID logic
-        );
+        client = new StatsigClient(clientKey, { userID });
         await client.initializeAsync();
-        setStatsigClient(client);
-        setError(null);
+
+        if (mounted) {
+          setStatsigClient(client);
+          setError(null);
+        }
       } catch (err) {
         console.error('Failed to initialize Statsig:', err);
-        setError(err instanceof Error ? err : new Error('Failed to initialize Statsig'));
+        if (mounted) {
+          setError(err instanceof Error ? err : new Error('Failed to initialize Statsig'));
+        }
       }
     };
 
     initClient();
-  }, []);
+
+    return () => {
+      mounted = false;
+      if (client) {
+        client.shutdown();
+      }
+    };
+  }, [userID]);
 
   if (error) {
     return errorComponent;
