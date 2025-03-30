@@ -34,7 +34,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+etch-mobile</string>
+          <string>exp+etch</string>
         </array>
       </dict>
     </array>

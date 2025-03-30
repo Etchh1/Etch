@@ -27,7 +27,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="etch"/>
         <data android:scheme="com.etch.mobile"/>
-        <data android:scheme="exp+etch-mobile"/>
+        <data android:scheme="exp+etch"/>
       </intent-filter>
     </activity>
   </application>
