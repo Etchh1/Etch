@@ -20,7 +20,11 @@
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification",
+          "remote-notification",
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -52,6 +56,9 @@
     },
     "owner": "etchh1",
     "sdkVersion": "52.0.0",
-    "runtimeVersion": "1.0.0"
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/8f68e337-4c1f-4f58-8ee0-5b3b75ff1151"
+    }
   }
 }
