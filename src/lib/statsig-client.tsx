@@ -91,7 +91,7 @@ const shouldRetryError = (errorType: StatsigErrorType): boolean => {
 export const StatsigWrapper = ({
   children,
   loadingComponent = <div>Loading...</div>,
-  errorComponent = <div>Failed to initialize feature flags</div>,
+  errorComponent,
   userID = 'anonymous',
   maxRetries = 3,
   retryDelay = 1000,
@@ -132,6 +132,8 @@ export const StatsigWrapper = ({
         }
       } catch (err) {
         console.error('Failed to initialize Statsig:', err);
+        console.error('Error Type:', categorizeError(err instanceof Error ? err : new Error('Unknown error')));
+        console.error('Retry Count:', state.retryCount);
         
         if (mounted) {
           const error = err instanceof Error ? err : new Error('Failed to initialize Statsig');
@@ -187,7 +189,15 @@ export const StatsigWrapper = ({
   }, [userID, state.retryCount, maxRetries, retryDelay, maxJitter, onError]);
 
   if (state.status === 'error') {
-    return errorComponent;
+    return errorComponent ?? (
+      <div style={{ padding: '1rem', color: 'red' }}>
+        <h3>Failed to initialize feature flags</h3>
+        <p>{state.error?.message}</p>
+        {state.lastErrorType && <p>Error Type: {state.lastErrorType}</p>}
+        <p>Retry Attempts: {state.retryCount}</p>
+        <p>Time: {new Date(state.lastErrorTime ?? Date.now()).toLocaleString()}</p>
+      </div>
+    );
   }
 
   if (state.status === 'loading' || !statsigClient) {
@@ -199,4 +209,4 @@ export const StatsigWrapper = ({
       {children}
     </StatsigProvider>
   );
-}; 
+};
