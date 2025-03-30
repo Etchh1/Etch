@@ -2,7 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
-import { useFeatureFlag, useConfigValue } from '@/lib/statsig'
+import { useFeatureFlag, useConfigValue } from '@/lib/statsig-client'
 
 export default function Home() {
   const [status, setStatus] = useState('Checking connection...')
