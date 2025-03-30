@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import Statsig from '@statsig/js-client';
+import * as Statsig from '@statsig/js-client';
 
 export const initializeStatsig = async () => {
   if (typeof window !== 'undefined') {
@@ -23,11 +23,25 @@ export const StatsigWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
 };
 
 export const useFeatureFlag = (flagName: string) => {
-  const [value] = React.useState(false);
+  const [value, setValue] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setValue(Statsig.checkGate(flagName));
+    }
+  }, [flagName]);
+
   return value;
 };
 
 export const useConfigValue = (configName: string) => {
-  const [value] = React.useState({ value: null });
-  return value;
+  const [value, setValue] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setValue(Statsig.getConfig(configName).value);
+    }
+  }, [configName]);
+
+  return { value };
 }; 
