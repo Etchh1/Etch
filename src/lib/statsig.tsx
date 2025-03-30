@@ -1,4 +1,5 @@
-import { StatsigProvider, useConfig, useGate } from '@statsig/react-bindings';
+import React from 'react';
+import { StatsigProvider } from '@statsig/react-bindings';
 import { SessionReplay } from '@statsig/session-replay';
 import { WebAnalytics } from '@statsig/web-analytics';
 
@@ -11,7 +12,7 @@ export const initializeStatsig = async () => {
   }
 };
 
-export const StatsigWrapper = ({ children }: { children: React.ReactNode }) => {
+export const StatsigWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <StatsigProvider>
       <SessionReplay />
@@ -22,9 +23,11 @@ export const StatsigWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useFeatureFlag = (flagName: string) => {
-  return useGate(flagName);
+  const [value] = React.useState(false);
+  return value;
 };
 
 export const useConfigValue = (configName: string) => {
-  return useConfig(configName);
+  const [value] = React.useState({ value: null });
+  return value;
 }; 
