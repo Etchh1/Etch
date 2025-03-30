@@ -21,13 +21,24 @@ interface StatsigWrapperProps {
   maxRetries?: number;
   retryDelay?: number;
   maxJitter?: number;
+  onError?: (error: Error, errorType: StatsigErrorType) => void;
 }
+
+type StatsigErrorType = 
+  | 'network'
+  | 'config'
+  | 'initialization'
+  | 'timeout'
+  | 'rate_limit'
+  | 'server_error'
+  | 'unknown';
 
 interface StatsigState {
   status: 'idle' | 'loading' | 'error' | 'success';
   error: Error | null;
   retryCount: number;
-  lastErrorType?: 'network' | 'config' | 'initialization' | 'unknown';
+  lastErrorType?: StatsigErrorType;
+  lastErrorTime?: number;
 }
 
 const isNetworkError = (error: Error): boolean => {
@@ -41,6 +52,42 @@ const isConfigError = (error: Error): boolean => {
          error.message.includes('configuration');
 };
 
+const isRateLimitError = (error: Error): boolean => {
+  return error.message.includes('rate limit') || 
+         error.message.includes('429') ||
+         error.message.includes('too many requests');
+};
+
+const isServerError = (error: Error): boolean => {
+  return error.message.includes('500') || 
+         error.message.includes('server error') ||
+         error.message.includes('internal server error');
+};
+
+const categorizeError = (error: Error): StatsigErrorType => {
+  if (isNetworkError(error)) {
+    return error.message.includes('timeout') ? 'timeout' : 'network';
+  }
+  if (isConfigError(error)) {
+    return 'config';
+  }
+  if (isRateLimitError(error)) {
+    return 'rate_limit';
+  }
+  if (isServerError(error)) {
+    return 'server_error';
+  }
+  if (error.message.includes('initialization')) {
+    return 'initialization';
+  }
+  return 'unknown';
+};
+
+const shouldRetryError = (errorType: StatsigErrorType): boolean => {
+  // Retry on network issues, timeouts, rate limits, and server errors
+  return ['network', 'timeout', 'rate_limit', 'server_error', 'initialization'].includes(errorType);
+};
+
 export const StatsigWrapper = ({
   children,
   loadingComponent = <div>Loading...</div>,
@@ -49,6 +96,7 @@ export const StatsigWrapper = ({
   maxRetries = 3,
   retryDelay = 1000,
   maxJitter = 1000,
+  onError,
 }: StatsigWrapperProps) => {
   const [statsigClient, setStatsigClient] = useState<StatsigClient | null>(null);
   const [state, setState] = useState<StatsigState>({
@@ -88,20 +136,14 @@ export const StatsigWrapper = ({
         if (mounted) {
           const error = err instanceof Error ? err : new Error('Failed to initialize Statsig');
           const currentRetryCount = state.retryCount;
+          const errorType = categorizeError(error);
+          const now = Date.now();
           
-          // Determine error type
-          let errorType: StatsigState['lastErrorType'] = 'unknown';
-          if (isNetworkError(error)) {
-            errorType = 'network';
-          } else if (isConfigError(error)) {
-            errorType = 'config';
-          } else if (error.message.includes('initialization')) {
-            errorType = 'initialization';
-          }
+          // Notify error handler if provided
+          onError?.(error, errorType);
 
-          // Only retry for network and initialization errors
-          const shouldRetry = (errorType === 'network' || errorType === 'initialization') && 
-                            currentRetryCount < maxRetries;
+          // Check if we should retry based on error type and retry count
+          const shouldRetry = shouldRetryError(errorType) && currentRetryCount < maxRetries;
 
           if (shouldRetry) {
             // Exponential backoff with jitter
@@ -115,6 +157,7 @@ export const StatsigWrapper = ({
                 retryCount: prev.retryCount + 1,
                 status: 'loading',
                 lastErrorType: errorType,
+                lastErrorTime: now,
               }));
             }, delay);
           } else {
@@ -123,6 +166,7 @@ export const StatsigWrapper = ({
               error,
               retryCount: currentRetryCount,
               lastErrorType: errorType,
+              lastErrorTime: now,
             });
           }
         }
@@ -140,7 +184,7 @@ export const StatsigWrapper = ({
         clearTimeout(retryTimeout);
       }
     };
-  }, [userID, state.retryCount, maxRetries, retryDelay, maxJitter]);
+  }, [userID, state.retryCount, maxRetries, retryDelay, maxJitter, onError]);
 
   if (state.status === 'error') {
     return errorComponent;
