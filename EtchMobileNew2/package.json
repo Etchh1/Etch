@@ -15,8 +15,8 @@
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
     "@react-navigation/native": "^6.1.9",
-    "@statsig/js-client": "^5.8.0",
-    "@statsig/react-bindings": "^5.8.0",
+    "@statsig/js-client": "^3.15.1",
+    "@statsig/react-bindings": "^3.15.1",
     "expo": "~50.0.5",
     "expo-font": "~11.10.2",
     "expo-linking": "~6.2.2",
