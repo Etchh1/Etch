@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Etch Mobile",
-    "slug": "etch-mobile",
+    "slug": "etch",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
