@@ -1,12 +1,17 @@
 'use client'
 
 import React from 'react';
-import * as Statsig from '@statsig/js-client';
+import { StatsigClient } from '@statsig/js-client';
+
+const statsig = new StatsigClient(
+  process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!,
+  { userID: 'anonymous' }
+);
 
 export const initializeStatsig = async () => {
   if (typeof window !== 'undefined') {
     try {
-      await Statsig.initialize(process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!);
+      await statsig.initializeAsync();
       console.log('Statsig initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Statsig:', error);
@@ -27,7 +32,7 @@ export const useFeatureFlag = (flagName: string) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setValue(Statsig.checkGate(flagName));
+      setValue(statsig.checkGate(flagName));
     }
   }, [flagName]);
 
@@ -39,7 +44,7 @@ export const useConfigValue = (configName: string) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setValue(Statsig.getConfig(configName).value);
+      setValue(statsig.getDynamicConfig(configName).value);
     }
   }, [configName]);
 
