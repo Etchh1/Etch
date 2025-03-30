@@ -1,12 +1,12 @@
 'use client'
 
 import React from 'react';
-import { StatsigProvider } from '@statsig/react-bindings';
+import Statsig from '@statsig/js-client';
 
 export const initializeStatsig = async () => {
   if (typeof window !== 'undefined') {
     try {
-      await StatsigProvider.initialize(process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!);
+      await Statsig.initialize(process.env.NEXT_PUBLIC_STATSIG_CLIENT_KEY!);
       console.log('Statsig initialized successfully');
     } catch (error) {
       console.error('Failed to initialize Statsig:', error);
@@ -19,11 +19,7 @@ export const StatsigWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
     initializeStatsig();
   }, []);
 
-  return (
-    <StatsigProvider>
-      {children}
-    </StatsigProvider>
-  );
+  return <>{children}</>;
 };
 
 export const useFeatureFlag = (flagName: string) => {
