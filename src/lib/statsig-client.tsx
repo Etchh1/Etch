@@ -37,7 +37,7 @@ export const useFeatureFlag = (flagName: string) => {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setValue(client.checkGate(flagName));
+      setValue(client.getFeatureGate(flagName).value);
     }
   }, [flagName]);
 
