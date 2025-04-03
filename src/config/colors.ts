@@ -5,7 +5,7 @@ export const colors = {
   surface: '#F2F2F7',
   text: '#000000',
   textSecondary: '#8E8E93',
-  border: '#C6C6C8',
+  border: '#E5E5EA',
   error: '#FF3B30',
   success: '#34C759',
   warning: '#FF9500',
@@ -39,4 +39,5 @@ export const colors = {
   listItemBadgeText: '#FFFFFF',
   listItemBadgeBackground: '#FF3B30',
   listItemBadgeBorder: '#FFFFFF',
+  white: '#FFFFFF',
 }; 
