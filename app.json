@@ -1,5 +1,38 @@
 {
   "expo": {
+    "name": "Etch",
+    "slug": "etch",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*",
+      "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.etchh1.etch"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.etchh1.etch"
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "etch",
     "extra": {
       "eas": {
         "projectId": "8f68e337-4c1f-4f58-8ee0-5b3b75ff1151"

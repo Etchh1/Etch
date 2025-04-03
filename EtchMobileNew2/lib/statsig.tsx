@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { StatsigProvider } from '@statsig/react-bindings';
+import React, { useState, useEffect } from 'react';
+import { StatsigProvider, useGateValue, useDynamicConfig } from '@statsig/react-bindings';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { STATSIG_CLIENT_KEY } from '@env';
-import { useGate, useDynamicConfig } from '@statsig/react-bindings';
 
 if (!STATSIG_CLIENT_KEY) {
   throw new Error('Missing Statsig client key');
@@ -16,15 +15,20 @@ interface StatsigWrapperProps {
 export const StatsigWrapper = ({ children }: StatsigWrapperProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
 
+  useEffect(() => {
+    // Give a small delay to allow Statsig to initialize
+    const timer = setTimeout(() => setIsInitialized(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <ErrorBoundary>
       <StatsigProvider
         sdkKey={STATSIG_CLIENT_KEY}
-        waitForInitialization={true}
+        user={{ userID: 'anonymous' }}
         options={{
           environment: { tier: __DEV__ ? 'development' : 'production' },
         }}
-        onInitialized={() => setIsInitialized(true)}
       >
         {!isInitialized ? (
           <LoadingScreen message="Initializing Statsig..." />
@@ -36,12 +40,12 @@ export const StatsigWrapper = ({ children }: StatsigWrapperProps) => {
   );
 };
 
-export const useFeatureFlag = (gateName: string): boolean => {
-  const { isLoading, value } = useGate(gateName);
-  return !isLoading && value;
+export const useFeatureFlag = (gateName: string): boolean | null => {
+  const value = useGateValue(gateName);
+  return value === undefined ? null : value;
 };
 
 export const useConfigValue = <T,>(configName: string): T | null => {
-  const { isLoading, value } = useDynamicConfig(configName);
-  return !isLoading ? value as T : null;
+  const config = useDynamicConfig(configName);
+  return config.value as T;
 }; 

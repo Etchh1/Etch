@@ -4,14 +4,14 @@ import { useFeatureFlag, useConfigValue } from '../../lib/statsig';
 
 export default function TabOneScreen() {
   const isNewFeatureEnabled = useFeatureFlag('new_feature');
-  const config = useConfigValue<{ title: string }>('app_config');
+  const config = useConfigValue<{ title: string }>('app_config') ?? { title: 'Default Title' };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Etch Mobile</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       <Text>Feature Flag Status: {isNewFeatureEnabled ? 'Enabled' : 'Disabled'}</Text>
-      <Text>Config Title: {config?.title || 'Loading...'}</Text>
+      <Text>Config Title: {config.title}</Text>
     </View>
   );
 }

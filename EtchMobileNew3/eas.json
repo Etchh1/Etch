@@ -1,0 +1,55 @@
+{
+  "cli": {
+    "version": ">= 7.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.development.etch.com"
+      },
+      "ios": {
+        "simulator": true,
+        "resourceClass": "m-medium",
+        "image": "latest"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "channel": "development"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.staging.etch.com"
+      },
+      "ios": {
+        "resourceClass": "m-medium",
+        "image": "latest"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "channel": "preview"
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.etch.com"
+      },
+      "ios": {
+        "resourceClass": "m-medium",
+        "image": "latest"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "channel": "production"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+} 
